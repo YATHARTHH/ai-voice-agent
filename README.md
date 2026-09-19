@@ -3,6 +3,9 @@
 > **CIMET Engineering Hackathon (Jaipur) — Energy Vertical**  
 > Autonomous dropout journey recovery over voice with tone-reading escalation and ACMA regulatory guardrails.
 
+> 🔗 **Companion Repository — Sales Call QA Platform:** I have also completed the Sales Call QA & Compliance Evaluation problem statement! You can inspect the full working implementation here: **[https://github.com/YATHARTHH/ai-sales-call-qa-platform](https://github.com/YATHARTHH/ai-sales-call-qa-platform)**. The corresponding UI screenshots (Live Audio Stream Monitor, QA Calibration Analytics, and Call Inspection Engine) can be found below and in the [`img/`](img/) folder.
+
+
 ---
 
 ## 🚀 Overview
