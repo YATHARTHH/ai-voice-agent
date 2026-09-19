@@ -18,6 +18,29 @@ This project delivers:
    * **ACMA Do Not Call Register Gating:** Pre-dial check gates dialouts and disables calling on registered numbers.
    * **Respect "No":** Zero-pressure exit protocol on customer decline (`logDecline`).
 
+
+---
+
+## 📸 System Screenshots & UI Walkthrough
+
+### Mission Control Dashboard & Recovery Scenarios
+| 1. Full 8-Field Autonomous Recovery | 2. Warm Escalation to Mode A Console |
+|---|---|
+| ![Full 8-Field Recovery](img/mission_control_full_recovery.png) | ![Mode A Console Modal](img/mission_control_mode_a_console.png) |
+
+| 3. ACMA Do Not Call (DNC) Gate Refusal | 4. Zero-Pressure Decline Protocol |
+|---|---|
+| ![ACMA DNC Gate Refusal](img/mission_control_dnc_refusal.png) | ![Respect No Exit Protocol](img/mission_control_zero_pressure.png) |
+
+### Compliance, QA Evaluation & Evidence Engine
+| Live Audio Stream & Compliance Gates | QA Performance & Calibration Analytics |
+|---|---|
+| ![Live Audio Stream Monitor](img/live_audio_stream_monitor.png) | ![QA Calibration Dashboard](img/qa_performance_calibration_dashboard.png) |
+
+| Deterministic Evidence & Inspection |
+|---|
+| ![Deterministic Evidence Inspection](img/call_inspection_deterministic_evidence.png) |
+
 ---
 
 ## 🛠️ Tech Stack & Architecture
