@@ -492,9 +492,30 @@ footer .credit { font-size: 12px; color: var(--text-muted); }
 <script type="module">
 import Vapi from "https://esm.sh/@vapi-ai/web@latest";
 
-const VAPI_PUBLIC_KEY = "ee3244d6-ea78-445d-91d7-5595b763b7c9";
-const VAPI_ASSISTANT_ID = "bccfa9d1-67b4-4ff2-9302-189922eb8021";
-const vapi = new Vapi(VAPI_PUBLIC_KEY);
+// Dynamic Environment Configuration (Loaded from .env or localStorage — zero secrets in repo)
+let VAPI_PUBLIC_KEY = localStorage.getItem("VAPI_PUBLIC_KEY") || "";
+let VAPI_ASSISTANT_ID = localStorage.getItem("VAPI_ASSISTANT_ID") || "";
+
+try {
+  const envRes = await fetch("/.env");
+  if (envRes.ok) {
+    const envText = await envRes.text();
+    for (const line of envText.split("\n")) {
+      const trimmed = line.trim();
+      if (trimmed && !trimmed.startsWith("#") && trimmed.includes("=")) {
+        const idx = trimmed.indexOf("=");
+        const k = trimmed.slice(0, idx).trim();
+        const v = trimmed.slice(idx + 1).trim();
+        if (k === "VAPI_PUBLIC_KEY") VAPI_PUBLIC_KEY = v;
+        if (k === "VAPI_ASSISTANT_ID") VAPI_ASSISTANT_ID = v;
+      }
+    }
+  }
+} catch (e) {
+  console.info("Could not fetch /.env directly, using fallback storage.");
+}
+
+const vapi = VAPI_PUBLIC_KEY ? new Vapi(VAPI_PUBLIC_KEY) : null;
 
 // State
 let currentVertical = "energy";
@@ -963,11 +984,12 @@ window.closeAgentConsole = function() {
   agentConsoleModal.classList.remove("open");
 };
 
-// Configurable Assistant IDs (can share one or use dedicated per vertical)
+// Configurable Assistant IDs — loaded from .env (zero secrets in repo).
+// VAPI_ASSISTANT_ID is parsed from /.env at the top of this module.
 // Energy is the submission target (brief p.2). Run a dedicated Energy assistant —
 // a single assistant carrying both field lists drifts between scripts mid-call.
 const VAPI_ASSISTANT_IDS = {
-  energy: "bccfa9d1-67b4-4ff2-9302-189922eb8021"
+  energy: VAPI_ASSISTANT_ID  // set via .env → VAPI_ASSISTANT_ID
 };
 
 // ===== LIVE VAPI SDK WIRING =====
@@ -978,6 +1000,14 @@ callBtn.addEventListener("click", () => {
   }
   if (!inCall) {
     const lead = activeLead();
+
+    // ---- Guard: Vapi SDK not initialised (no VAPI_PUBLIC_KEY in .env). ----
+    if (!vapi || !VAPI_PUBLIC_KEY) {
+      callStatus.textContent = "⚠ VAPI_PUBLIC_KEY not found — create a .env file (see .env.example) and serve via http-server.";
+      dispositionEl.className = "disposition show declined";
+      dispositionEl.textContent = "ℹ No live call possible without credentials. Use the instant simulation buttons instead.";
+      return;
+    }
 
     // ---- No dedicated assistant for this vertical => simulation only. ----
     if (!VAPI_ASSISTANT_IDS[currentVertical]) {
@@ -1023,7 +1053,7 @@ callBtn.addEventListener("click", () => {
   }
 });
 
-vapi.on("call-start", () => {
+if (vapi) vapi.on("call-start", () => {
   inCall = true;
   callBtn.classList.add("live");
   iconPhone.style.display = "none";
@@ -1039,7 +1069,7 @@ vapi.on("call-start", () => {
   transcriptEl.innerHTML = "";
 });
 
-vapi.on("call-end", () => {
+if (vapi) vapi.on("call-end", () => {
   clearInterval(timerInterval);
   inCall = false;
   callBtn.classList.remove("live");
@@ -1140,7 +1170,7 @@ function triggerEscalation(reasonText, triggerCode) {
   handoffCard.classList.add("show");
 }
 
-vapi.on("message", (msg) => {
+if (vapi) vapi.on("message", (msg) => {
 
   // ---------- TOOL CALLS: the authoritative disposition signal ----------
   if (msg.type === "tool-calls" || msg.type === "tool-call") {
@@ -1257,7 +1287,7 @@ vapi.on("message", (msg) => {
 
 // Safety net: if the call ends without any tool firing, fall back to phrase
 // inspection of the final assistant turn so the demo never sits blank.
-vapi.on("call-end", () => {
+if (vapi) vapi.on("call-end", () => {
   if (dispositionLocked) return;
   const lines = transcriptEl.querySelectorAll(".line.assistant");
   const last = lines.length ? lines[lines.length - 1].textContent.toLowerCase() : "";
@@ -1268,7 +1298,7 @@ vapi.on("call-end", () => {
   }
 });
 
-vapi.on("error", (e) => {
+if (vapi) vapi.on("error", (e) => {
   console.error("Vapi error:", e);
   const detail = (e && (e.errorMsg || e.message || (e.error && e.error.message))) || "unknown";
   callStatus.textContent = "Vapi error: " + detail;
