@@ -3,3 +3,5 @@ Thumbs.db
 *.log
 .tempmediaStorage/
 scratch/
+.env
+.env.local
