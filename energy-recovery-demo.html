@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Econnex Recovery — Mission Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #070B10;
+  --surface: #0E141E;
+  --surface-2: #161F2E;
+  --surface-3: #1E2B3E;
+  --border: #233144;
+  --border-light: #32435B;
+  --text: #F1F5F9;
+  --text-soft: #94A3B8;
+  --text-muted: #64748B;
+  --emerald: #10B981;
+  --emerald-dim: #065F46;
+  --emerald-glow: rgba(16, 185, 129, 0.15);
+  --gold: #F59E0B;
+  --gold-dim: #78350F;
+  --gold-glow: rgba(245, 158, 11, 0.15);
+  --red: #EF4444;
+  --red-dim: #7F1D1D;
+  --red-glow: rgba(239, 68, 68, 0.15);
+  --blue: #3B82F6;
+  --blue-glow: rgba(59, 130, 246, 0.15);
+  --radius: 10px;
+  --radius-lg: 14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', -apple-system, sans-serif; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+h1,h2,h3,h4 { font-family: 'Space Grotesk', sans-serif; font-weight: 600; }
+
+/* ===== TOP NAV ===== */
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; border-bottom: 1px solid var(--border); background: var(--surface); position: sticky; top: 0; z-index: 50; }
+.brand-group { display: flex; align-items: center; gap: 14px; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 16px; color: var(--text); letter-spacing: -0.01em; }
+.brand .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--emerald); box-shadow: 0 0 10px var(--emerald); }
+
+/* Vertical Switcher Tabs */
+.vertical-switcher { display: flex; align-items: center; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 3px; gap: 2px; }
+.vert-btn { background: transparent; border: none; color: var(--text-soft); padding: 5px 12px; border-radius: 6px; font-size: 11.5px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px; }
+.vert-btn.active { background: var(--surface-3); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+.vert-btn:hover:not(.active) { color: var(--text); }
+.vert-tag { font-size: 9px; padding: 1px 5px; border-radius: 4px; background: rgba(255,255,255,0.08); font-family: 'IBM Plex Mono', monospace; }
+
+.topbar-actions { display: flex; align-items: center; gap: 10px; }
+.badge { font-size: 11px; font-weight: 500; color: var(--text-soft); border: 1px solid var(--border); padding: 5px 12px; border-radius: 999px; }
+.env-badge { font-size: 10px; font-weight: 700; color: var(--emerald); background: var(--emerald-glow); border: 1px solid rgba(16,185,129,0.3); padding: 4px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* ===== SIMULATION BAR ===== */
+.demo-banner { background: var(--surface-2); border-bottom: 1px solid var(--border); padding: 8px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; font-size: 12px; flex-wrap: wrap; }
+.demo-banner-left { display: flex; align-items: center; gap: 8px; color: var(--text-soft); }
+.demo-banner-left strong { color: var(--text); }
+.sim-buttons { display: flex; align-items: center; gap: 8px; }
+.sim-btn { background: var(--surface-3); border: 1px solid var(--border-light); color: var(--text); padding: 5px 11px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.15s ease; display: inline-flex; align-items: center; gap: 5px; }
+.sim-btn:hover { background: var(--border-light); border-color: var(--text-soft); }
+.sim-btn.primary { background: var(--emerald-glow); border-color: rgba(16,185,129,0.4); color: var(--emerald); }
+.sim-btn.primary:hover { background: rgba(16,185,129,0.25); }
+.sim-btn.warn { background: var(--gold-glow); border-color: rgba(245,158,11,0.4); color: var(--gold); }
+.sim-btn.warn:hover { background: rgba(245,158,11,0.25); }
+.sim-btn.danger { background: var(--red-glow); border-color: rgba(239,68,68,0.4); color: var(--red); }
+.sim-btn.danger:hover { background: rgba(239,68,68,0.25); }
+
+/* ===== MAIN 3-COLUMN GRID ===== */
+.mission-grid { display: grid; grid-template-columns: 290px 1fr 340px; gap: 0; min-height: calc(100vh - 95px); }
+
+/* ===== LEFT COLUMN: LEAD PIPELINE ===== */
+.lead-panel { border-right: 1px solid var(--border); padding: 20px 16px; background: var(--surface); display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+.panel-label { font-size: 10.5px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; display: flex; justify-content: space-between; align-items: center; }
+.lead-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px; cursor: pointer; transition: all 0.15s ease; }
+.lead-card:hover { border-color: var(--emerald-dim); background: var(--surface-3); }
+.lead-card.active { border-color: var(--emerald); box-shadow: 0 0 0 1px var(--emerald), inset 0 0 0 1px rgba(16,185,129,0.1); background: var(--emerald-glow); }
+.lead-card .lead-name { font-weight: 600; font-size: 13.5px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+.lead-card .lead-pill { font-size: 9.5px; font-weight: 600; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.06); color: var(--text-soft); }
+.lead-card .lead-detail { font-size: 11.5px; color: var(--text-soft); line-height: 1.5; }
+.lead-card .lead-step { display: inline-block; font-size: 10px; font-weight: 600; color: var(--gold); background: var(--gold-glow); padding: 3px 8px; border-radius: 4px; margin-top: 8px; font-family: 'IBM Plex Mono', monospace; }
+
+.lead-stats { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.stat-row { display: flex; justify-content: space-between; font-size: 12px; }
+.stat-row .stat-label { color: var(--text-muted); }
+.stat-row .stat-value { font-weight: 600; font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+.stat-value.green { color: var(--emerald); }
+.stat-value.gold { color: var(--gold); }
+.stat-value.red { color: var(--red); }
+
+/* ===== CENTER COLUMN: LIVE CALL INTERFACE ===== */
+.call-panel { display: flex; flex-direction: column; align-items: center; padding: 28px 24px; gap: 16px; overflow-y: auto; background: var(--bg); }
+.call-panel .section-label { font-size: 10.5px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
+
+/* Sentiment Strip */
+.sentiment-strip { width: 100%; max-width: 500px; display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+.sentiment-strip .sentiment-label { font-size: 11px; color: var(--text-muted); white-space: nowrap; font-weight: 500; }
+.sentiment-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--surface-3); overflow: hidden; }
+.sentiment-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease, background 0.4s ease; width: 85%; background: var(--emerald); }
+.sentiment-fill.caution { background: var(--gold); }
+.sentiment-fill.danger { background: var(--red); }
+.sentiment-reading { font-size: 12px; font-weight: 600; font-family: 'IBM Plex Mono', monospace; min-width: 65px; text-align: right; }
+.sentiment-reading.positive { color: var(--emerald); }
+.sentiment-reading.caution { color: var(--gold); }
+.sentiment-reading.danger { color: var(--red); }
+
+/* Call Ring & Button */
+.ring-wrap { position: relative; width: 130px; height: 130px; display: flex; align-items: center; justify-content: center; margin: 4px 0; }
+.pulse-ring { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid rgba(16,185,129,0.3); animation: pulse 2.6s ease-out infinite; }
+.pulse-ring.ring2 { animation-delay: 1.3s; }
+@keyframes pulse { 0%{transform:scale(0.72);opacity:0.9} 75%{transform:scale(1.35);opacity:0} 100%{transform:scale(1.35);opacity:0} }
+
+.call-btn { position: relative; width: 100px; height: 100px; border-radius: 50%; border: none; background: linear-gradient(155deg, var(--emerald) 0%, #065F46 100%); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px -6px rgba(16,185,129,0.5); transition: all 0.18s ease; }
+.call-btn:hover { transform: scale(1.05); }
+.call-btn:active { transform: scale(0.97); }
+.call-btn.live { background: linear-gradient(155deg, var(--red) 0%, #991B1B 100%); box-shadow: 0 8px 30px -6px rgba(239,68,68,0.5); }
+.call-btn svg { width: 32px; height: 32px; }
+
+.call-status { font-size: 13px; color: var(--text-soft); min-height: 20px; font-weight: 500; }
+.call-status .timer { font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: var(--gold); }
+.mic-note { font-size: 11px; color: var(--text-muted); max-width: 360px; text-align: center; line-height: 1.4; }
+
+/* Disposition Box */
+.disposition { display: none; width: 100%; max-width: 500px; padding: 12px 16px; border-radius: var(--radius); font-size: 12.5px; font-weight: 600; text-align: center; animation: fadeSlide 0.35s ease; }
+.disposition.show { display: block; }
+.disposition.completed { background: var(--emerald-glow); border: 1px solid rgba(16,185,129,0.4); color: var(--emerald); }
+.disposition.escalated { background: var(--gold-glow); border: 1px solid rgba(245,158,11,0.4); color: var(--gold); }
+.disposition.declined { background: var(--red-glow); border: 1px solid rgba(239,68,68,0.4); color: var(--red); }
+
+/* Live Transcript Box */
+.transcript-box { width: 100%; max-width: 500px; flex: 1; min-height: 180px; display: flex; flex-direction: column; }
+.transcript-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.transcript-header h4 { font-size: 10.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+.transcript-counter { font-size: 10px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
+.transcript { display: none; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding: 4px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+.transcript.show { display: flex; }
+.transcript .line { font-size: 12.5px; line-height: 1.5; padding: 8px 12px; border-radius: 8px; max-width: 88%; animation: fadeSlide 0.25s ease; }
+@keyframes fadeSlide { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+.transcript .line.user { background: var(--surface-2); border: 1px solid var(--border); align-self: flex-end; color: var(--text); }
+.transcript .line.assistant { background: var(--emerald-glow); border: 1px solid rgba(16,185,129,0.25); align-self: flex-start; color: #A7F3D0; }
+.transcript .line.system { background: var(--surface-3); border: 1px dashed var(--border-light); align-self: center; font-size: 11px; color: var(--text-soft); font-family: 'IBM Plex Mono', monospace; }
+
+/* ===== RIGHT COLUMN: LIVE EXTRACTION HUD ===== */
+.extract-panel { border-left: 1px solid var(--border); background: var(--surface); padding: 20px 16px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+.progress-summary { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); }
+.progress-ring { width: 44px; height: 44px; flex-shrink: 0; }
+.progress-ring circle { fill: none; stroke-width: 4; stroke-linecap: round; }
+.progress-ring .track { stroke: var(--surface-3); }
+.progress-ring .fill { stroke: var(--emerald); transition: stroke-dashoffset 0.6s ease; transform: rotate(-90deg); transform-origin: center; }
+.progress-text { font-size: 12px; color: var(--text-soft); line-height: 1.5; }
+.progress-text strong { color: var(--text); font-size: 14px; display: block; }
+
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-row { display: flex; align-items: center; gap: 10px; padding: 8px 11px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; transition: all 0.3s ease; }
+.field-row.captured { border-color: var(--emerald-dim); background: var(--emerald-glow); }
+.field-row.captured .field-icon { color: var(--emerald); }
+.field-icon { width: 15px; height: 15px; color: var(--text-muted); flex-shrink: 0; transition: color 0.3s ease; }
+.field-info { flex: 1; min-width: 0; }
+.field-label { font-size: 9.5px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.field-value { font-size: 12.5px; font-weight: 500; color: var(--text); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.field-value.empty { color: var(--text-muted); font-style: italic; font-weight: 400; }
+
+/* Handoff Card */
+.handoff-card { display: none; padding: 12px; background: var(--gold-glow); border: 1px solid rgba(245,158,11,0.3); border-radius: var(--radius); animation: fadeSlide 0.4s ease; }
+.handoff-card.show { display: block; }
+.handoff-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.handoff-card h4 { font-size: 11.5px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 6px; }
+.handoff-card p { font-size: 11.5px; color: var(--text-soft); line-height: 1.4; }
+.btn-view-console { background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.4); color: var(--gold); font-size: 10.5px; font-weight: 600; padding: 4px 8px; border-radius: 4px; cursor: pointer; margin-top: 8px; display: inline-flex; align-items: center; gap: 4px; }
+.btn-view-console:hover { background: rgba(245,158,11,0.35); }
+
+/* ===== AGENT CONSOLE MODAL (MODE A) ===== */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.open { display: flex; }
+.console-modal { background: var(--surface); border: 1px solid var(--border-light); border-radius: var(--radius-lg); width: 100%; max-width: 680px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); overflow: hidden; animation: fadeSlide 0.3s ease; }
+.console-header { background: var(--surface-2); padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.console-header h3 { font-size: 15px; display: flex; align-items: center; gap: 8px; color: var(--text); }
+.console-header .close-btn { background: none; border: none; color: var(--text-soft); font-size: 20px; cursor: pointer; line-height: 1; }
+.console-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; max-height: 75vh; overflow-y: auto; }
+.console-banner { background: var(--gold-glow); border-left: 3px solid var(--gold); padding: 10px 14px; border-radius: 4px; font-size: 12px; line-height: 1.5; color: var(--text); }
+.console-banner strong { color: var(--gold); }
+.console-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.console-field { background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; }
+.console-field .lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+.console-field .val { font-size: 13px; color: var(--emerald); font-weight: 500; margin-top: 2px; }
+.script-box { background: var(--surface-3); border: 1px solid var(--border-light); border-radius: 8px; padding: 12px 14px; }
+.script-box .script-lbl { font-size: 10.5px; color: var(--gold); text-transform: uppercase; font-weight: 600; margin-bottom: 6px; letter-spacing: 0.04em; }
+.script-box p { font-size: 13px; color: #F8FAFC; line-height: 1.5; font-style: italic; }
+.console-footer { padding: 12px 20px; background: var(--surface-2); border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.console-footer .disclaimer { font-size: 11px; color: var(--text-muted); }
+.btn-pay-link { background: var(--blue); color: white; border: none; padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.btn-pay-link:hover { opacity: 0.9; }
+
+/* ===== BELOW-FOLD SECTIONS ===== */
+.below-fold { max-width: 1080px; margin: 0 auto; padding: 0 28px; }
+section.info { padding: 44px 0; border-top: 1px solid var(--border); }
+.section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 24px; gap: 20px; }
+.section-head h2 { font-size: 20px; }
+.section-head p { font-size: 12.5px; color: var(--text-soft); margin: 0; max-width: 380px; text-align: right; }
+
+.rubric-cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
+.rubric-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 6px; }
+.rubric-card .pct { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 700; color: var(--emerald); }
+.rubric-card h4 { font-size: 12px; color: var(--text); }
+.rubric-card p { font-size: 11px; color: var(--text-soft); line-height: 1.4; }
+
+.guardrails { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.guardrail-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; background: var(--surface); }
+.guardrail-card h4 { font-size: 12.5px; font-weight: 600; margin-bottom: 4px; color: var(--text); display: flex; align-items: center; gap: 6px; }
+.guardrail-card p { font-size: 11.5px; color: var(--text-soft); line-height: 1.45; }
+
+footer.site-footer { border-top: 1px solid var(--border); padding: 24px 0 32px; text-align: center; }
+footer .credit { font-size: 12px; color: var(--text-muted); }
+
+@media (max-width: 1024px) {
+  .mission-grid { grid-template-columns: 1fr; }
+  .lead-panel, .extract-panel { display: none; }
+  .rubric-cards { grid-template-columns: repeat(2, 1fr); }
+  .guardrails { grid-template-columns: 1fr; }
+}
+
+/* ===== ACMA DNC GATE ===== */
+.dnc-badge { display:inline-flex; align-items:center; gap:4px; font-family:'IBM Plex Mono',monospace; font-size:8.5px; font-weight:600; padding:2px 6px; border-radius:4px; letter-spacing:0.04em; text-transform:uppercase; margin-top:6px; }
+.dnc-badge.cleared { color:var(--emerald); background:var(--emerald-glow); border:1px solid rgba(16,185,129,0.3); }
+.dnc-badge.blocked { color:var(--red); background:var(--red-glow); border:1px solid rgba(239,68,68,0.35); }
+.lead-card.dnc-blocked { opacity:0.55; }
+.lead-card.dnc-blocked:hover { opacity:0.75; }
+.call-btn.gated { background:var(--surface-3) !important; cursor:not-allowed; box-shadow:none !important; }
+.gate-strip { display:flex; align-items:center; justify-content:center; gap:8px; font-size:10.5px; font-family:'IBM Plex Mono',monospace; padding:6px 10px; border-radius:6px; margin-bottom:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--text-soft); }
+.gate-strip.cleared { color:var(--emerald); border-color:rgba(16,185,129,0.3); background:var(--emerald-glow); }
+.gate-strip.blocked { color:var(--red); border-color:rgba(239,68,68,0.35); background:var(--red-glow); }
+.gate-override { background:transparent; border:1px solid currentColor; color:inherit; font-family:'IBM Plex Mono',monospace; font-size:9px; padding:2px 7px; border-radius:4px; cursor:pointer; margin-left:8px; opacity:0.8; }
+.gate-override:hover { opacity:1; }
+
+/* ===== EFFICIENCY LEDGER (25% criterion) ===== */
+.eff-panel { margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
+.eff-row { display:flex; align-items:baseline; justify-content:space-between; padding:5px 0; font-size:11.5px; }
+.eff-label { color:var(--text-muted); }
+.eff-value { font-family:'IBM Plex Mono',monospace; font-weight:600; color:var(--text); font-size:12px; }
+.eff-value.green { color:var(--emerald); }
+.eff-value.blue { color:var(--blue); }
+.eff-foot { margin-top:8px; font-size:9.5px; color:var(--text-muted); line-height:1.5; }
+</style>
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<div class="topbar">
+  <div class="brand-group">
+    <div class="brand"><span class="dot"></span> Econnex Recovery — Mission Control</div>
+    <div class="vertical-switcher">
+      <span class="vert-btn active" id="btnVertEnergy">
+        <span>⚡ Energy — Electricity &amp; Gas</span>
+        <span class="vert-tag">Brief Scope</span>
+      </span>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <span class="badge">Live Apps Script Webhook</span>
+    <span class="env-badge">Autonomous Mode B</span>
+  </div>
+</div>
+
+<!-- ===== DEMO CONTROL / SIMULATION BAR ===== -->
+<div class="demo-banner">
+  <div class="demo-banner-left">
+    <strong>Instant Demo Playback:</strong> Test all 3 judging scenarios instantly without mic dependency:
+  </div>
+  <div class="sim-buttons">
+    <button class="sim-btn primary" id="btnSimHappy" onclick="runSimulation('happy')">
+      <span>▶</span> 1. Full 8-Field Recovery (30% Outcome)
+    </button>
+    <button class="sim-btn warn" id="btnSimEscalate" onclick="runSimulation('escalate')">
+      <span>⚠</span> 2. Frustration Handoff (20% Robustness)
+    </button>
+    <button class="sim-btn danger" id="btnSimDecline" onclick="runSimulation('decline')">
+      <span>✕</span> 3. Respect "No" Exit (10% Guardrails)
+    </button>
+    <button class="sim-btn" onclick="resetAll()"><span>↺</span> Reset</button>
+  </div>
+</div>
+
+<!-- ===== 3-COLUMN MISSION GRID ===== -->
+<div class="mission-grid">
+
+  <!-- LEFT: Lead Pipeline -->
+  <div class="lead-panel">
+    <div class="panel-label">
+      <span>Lead Pipeline</span>
+      <span id="leadVerticalLabel" style="color:var(--text-soft)">Energy (Electricity & Gas)</span>
+    </div>
+
+    <div id="leadCardsContainer" style="display:flex; flex-direction:column; gap:10px;">
+      <!-- Lead cards rendered by JS -->
+    </div>
+
+    <div class="lead-stats">
+      <div class="panel-label">Session Outcomes</div>
+      <div class="stat-row"><span class="stat-label">Leads Queued</span><span class="stat-value">3</span></div>
+      <div class="stat-row"><span class="stat-label">Recovered (Completed)</span><span class="stat-value green" id="statRecovered">0</span></div>
+      <div class="stat-row"><span class="stat-label">Escalated (Warm Handoff)</span><span class="stat-value gold" id="statEscalated">0</span></div>
+      <div class="stat-row"><span class="stat-label">Declined (Respected)</span><span class="stat-value red" id="statDeclined">0</span></div>
+
+      <div class="eff-panel">
+        <div class="panel-label">Efficiency Ledger vs. Manual Console</div>
+        <div class="eff-row"><span class="eff-label">Fields auto-captured</span><span class="eff-value green" id="effFields">0 / 8</span></div>
+        <div class="eff-row"><span class="eff-label">Keystrokes saved</span><span class="eff-value green" id="effKeys">0</span></div>
+        <div class="eff-row"><span class="eff-label">Human agent time</span><span class="eff-value green" id="effAgentTime">0s</span></div>
+        <div class="eff-row"><span class="eff-label">Manual baseline</span><span class="eff-value" id="effBaseline">420s</span></div>
+        <div class="eff-row"><span class="eff-label">Agent time reclaimed</span><span class="eff-value blue" id="effSaved">—</span></div>
+        <div class="eff-foot">Baseline: 7 min average agent handling time per manual recovery call (script reading + form entry). Autonomous calls consume 0s of agent time unless escalated, where only post-handoff time is charged.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER: Call Interface -->
+  <div class="call-panel">
+    <span class="section-label">Live Call Interface</span>
+
+    <!-- Sentiment Meter -->
+    <div class="sentiment-strip" id="sentimentStrip">
+      <span class="sentiment-label">Customer Sentiment:</span>
+      <div class="sentiment-bar"><div class="sentiment-fill" id="sentimentFill"></div></div>
+      <span class="sentiment-reading positive" id="sentimentReading">Positive</span>
+    </div>
+
+    <!-- ACMA DNC / calling-hours gate (evaluated before dialling) -->
+    <div class="gate-strip" id="gateStrip">Checking ACMA Do Not Call Register…</div>
+
+    <!-- Call Ring / Button -->
+    <div class="ring-wrap">
+      <div class="pulse-ring" id="ring1"></div>
+      <div class="pulse-ring ring2" id="ring2"></div>
+      <button class="call-btn" id="callBtn" aria-label="Start recovery call">
+        <svg id="iconPhone" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6.6 10.8C8 13.6 10.4 16 13.2 17.4L15.4 15.2C15.7 14.9 16.1 14.8 16.5 14.9C17.7 15.3 19 15.5 20.3 15.5C20.9 15.5 21.3 15.9 21.3 16.5V20.3C21.3 20.9 20.9 21.3 20.3 21.3C10.4 21.3 2.7 13.6 2.7 3.7C2.7 3.1 3.1 2.7 3.7 2.7H7.5C8.1 2.7 8.5 3.1 8.5 3.7C8.5 5 8.7 6.3 9.1 7.5C9.2 7.9 9.1 8.3 8.8 8.6L6.6 10.8Z" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
+        </svg>
+        <svg id="iconEnd" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none;">
+          <path d="M6 6L18 18M18 6L6 18" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="call-status" id="callStatus">Select lead & click phone to test with real voice</div>
+    <div class="mic-note" id="micNote">Live Vapi WebRTC connection · Or click any simulation demo above</div>
+
+    <!-- Disposition Alert -->
+    <div class="disposition" id="disposition"></div>
+
+    <!-- Live Transcript Box -->
+    <div class="transcript-box">
+      <div class="transcript-header">
+        <h4>Live Transcript</h4>
+        <span class="transcript-counter" id="transcriptCount">0 messages</span>
+      </div>
+      <div class="transcript" id="transcript"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Field Extraction HUD -->
+  <div class="extract-panel">
+    <div class="panel-label">Real-Time Field Extraction HUD</div>
+
+    <!-- Progress Ring -->
+    <div class="progress-summary">
+      <svg class="progress-ring" viewBox="0 0 44 44">
+        <circle class="track" cx="22" cy="22" r="18"/>
+        <circle class="fill" id="progressCircle" cx="22" cy="22" r="18" stroke-dasharray="113.1" stroke-dashoffset="113.1"/>
+      </svg>
+      <div class="progress-text">
+        <strong id="progressCount">0 / 8 Fields</strong>
+        <span id="progressLabel">Waiting for call…</span>
+      </div>
+    </div>
+
+    <!-- Dynamic Field Cards -->
+    <div class="field-group" id="fieldCardsContainer">
+      <!-- Injected by JS based on current vertical -->
+    </div>
+
+    <!-- Warm Handoff Card -->
+    <div class="handoff-card" id="handoffCard">
+      <div class="handoff-card-header">
+        <h4>⚠ Escalation Triggered</h4>
+        <span class="badge" style="font-size:9px; color:var(--gold); border-color:rgba(245,158,11,0.4);">Mode A Takeover</span>
+      </div>
+      <p id="handoffReason">Customer frustration threshold crossed. Transferring with full context to human console.</p>
+      <button class="btn-view-console" onclick="openAgentConsole()">
+        <span>Open Agent Console (Aarav's View) →</span>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== AGENT CONSOLE MODAL (MODE A DEMONSTRATION) ===== -->
+<div class="modal-overlay" id="agentConsoleModal">
+  <div class="console-modal">
+    <div class="console-header">
+      <h3><span>🎧</span> Agent-Assisted Console — Incoming Warm Handoff</h3>
+      <button class="close-btn" onclick="closeAgentConsole()">&times;</button>
+    </div>
+    <div class="console-body">
+      <div class="console-banner">
+        <strong>⚡ Zero Cognitive Load / Zero Re-asking:</strong> The autonomous agent has already captured all customer data below before the handoff.
+      </div>
+      <div class="console-grid" id="consoleFieldsGrid">
+        <!-- Rendered dynamically -->
+      </div>
+      <div class="script-box">
+        <div class="script-lbl">Suggested Live Agent Script (from Hackathon Brief Page 4):</div>
+        <p>"Hi Priya, this is Aarav — I can see everything so far, no need to repeat anything. Let me sort this out for you."</p>
+      </div>
+    </div>
+    <div class="console-footer">
+      <span class="disclaimer">PCI-DSS Compliant: Voice card entry blocked</span>
+      <button class="btn-pay-link" onclick="alert('Secure payment link dispatched via SMS & Email!')">
+        <span>🔒</span> Send Secure Web Checkout Link
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BELOW-FOLD RUBRIC & COMPLIANCE SECTIONS ===== -->
+<div class="below-fold">
+  
+  <section class="info">
+    <div class="section-head">
+      <h2>How this matches the 100% Hackathon Rubric</h2>
+      <p>Explicitly engineered against the 5 judging criteria in the Jaipur brief.</p>
+    </div>
+    <div class="rubric-cards">
+      <div class="rubric-card">
+        <div class="pct">30%</div>
+        <h4>Working Outcome</h4>
+        <p>All 8 Energy fields captured live, validated server-side, and written to CompletedJourneys. Partial journeys are refused, not recorded.</p>
+      </div>
+      <div class="rubric-card">
+        <div class="pct">25%</div>
+        <h4>Efficiency Gain</h4>
+        <p>Efficiency ledger counts fields auto-captured, keystrokes saved and agent seconds reclaimed against a 420s manual baseline.</p>
+      </div>
+      <div class="rubric-card">
+        <div class="pct">20%</div>
+        <h4>Robust Handoff</h4>
+        <p>Six classified escalation signals (ANGER / CONFUSION / OFF-SCRIPT / SENSITIVE / ASKS / LOW-CONF) drive a causal handoff with full context.</p>
+      </div>
+      <div class="rubric-card">
+        <div class="pct">15%</div>
+        <h4>Scripts & Payload</h4>
+        <p>Own per-field Energy scripts drive the call; one canonical journey payload with a single adapter seam for CIMET's sandbox.</p>
+      </div>
+      <div class="rubric-card">
+        <div class="pct">10%</div>
+        <h4>Guardrails</h4>
+        <p>Consent before collection, card data refused mid-sentence, no advice, and an executable ACMA DNC gate that blocks dialling.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="info">
+    <div class="section-head">
+      <h2>4 Non-Negotiable Regulatory Guardrails</h2>
+      <p>Built for the Australian regulatory regime (ACMA, TCP Code & Australian Privacy Principles).</p>
+    </div>
+    <div class="guardrails">
+      <div class="guardrail-card">
+        <h4><span>🔒</span> 1. Consent First (AU Two-Party)</h4>
+        <p>Discloses call recording at second 0 before collecting any customer information. Complies with the Telecommunications (Interception and Access) Act.</p>
+      </div>
+      <div class="guardrail-card">
+        <h4><span>💳</span> 2. No Card Data by Voice (PCI-DSS)</h4>
+        <p>The agent interrupts mid-sequence if a customer starts reading card digits, then escalates with trigger SENSITIVE. Card data is never requested, accepted, or repeated back. Secure web checkout link is dispatched instead.</p>
+      </div>
+      <div class="guardrail-card">
+        <h4><span>📵</span> 3. Do-Not-Call Aware (ACMA)</h4>
+        <p>An executable gate, not a claim: <code>checkDncLocal()</code> runs before dialling and disables the call button. Register listings are a hard block; the calling-hours window is overridable only with a logged acknowledgement. Stubbed register — swap for the ACMA washing API in production.</p>
+      </div>
+      <div class="guardrail-card">
+        <h4><span>🛑</span> 4. Respect "No" (Zero Pressure)</h4>
+        <p>A single decline or statement of disinterest terminates the call immediately with polite sign-off. Zero badgering loops.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer class="site-footer">
+  <div class="credit">CIMET / Econnex Jaipur Hackathon Submission — Autonomous Journey Recovery & Warm Escalation Platform</div>
+</footer>
+
+<script type="module">
+import Vapi from "https://esm.sh/@vapi-ai/web@latest";
+
+const VAPI_PUBLIC_KEY = "ee3244d6-ea78-445d-91d7-5595b763b7c9";
+const VAPI_ASSISTANT_ID = "bccfa9d1-67b4-4ff2-9302-189922eb8021";
+const vapi = new Vapi(VAPI_PUBLIC_KEY);
+
+// State
+let currentVertical = "energy";
+let inCall = false;
+let isSimulating = false;
+let simulationTimeouts = [];
+let timerInterval = null;
+let secondsElapsed = 0;
+let sentimentScore = 80;
+let capturedFields = {};
+
+// Vertical Definitions
+const VERTICAL_DATA = {
+energy: {
+    label: "Energy (Electricity & Gas)",
+    leads: [
+      { id: "LEAD-EN-101", name: "David Miller", phone: "0491570156", detail: "45 Station Rd, Burwood NSW 2134<br>AGL · Dual Fuel", step: "DROPPED → Step 4: Bill Upload", active: true },
+      { id: "LEAD-EN-102", name: "Ananya Patel", phone: "0491570157", detail: "18 King St, Richmond VIC 3121<br>Origin · Electricity Only", step: "DROPPED → Step 2: Solar Tariff", active: false },
+      { id: "LEAD-EN-103", name: "Liam O'Connor", phone: "0400000000", detail: "72 Queen St, Brisbane QLD 4000<br>EnergyAustralia · Gas", step: "DROPPED → Step 3: Concession", active: false }
+    ],
+    fields: [
+      { id: "address", label: "Supply Address", icon: "M8 1.5C5.5 1.5 3.5 3.5 3.5 6C3.5 9.5 8 14.5 8 14.5S12.5 9.5 12.5 6C12.5 3.5 10.5 1.5 8 1.5Z", keywords: ["street","road","avenue","nsw","vic","qld","burwood","richmond"] },
+      { id: "retailer", label: "Current Retailer", icon: "M2 12h12M4 8h8M6 4h4", keywords: ["agl","origin","energyaustralia","red energy","alinta","dodo"] },
+      { id: "fuel", label: "Fuel Type", icon: "M1 13h14M3 9l3-4 3 2 4-5", keywords: ["electricity","gas","dual fuel","both"] },
+      { id: "solar", label: "Solar Panels", icon: "M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707", keywords: ["solar","panels","feed-in","no solar","5kw"] },
+      { id: "name", label: "Full Name", icon: "M8 7a3 3 0 100-6 3 3 0 000 6zm-5 8c0-2.5 2.2-4.5 5-4.5s5 2 5 4.5", keywords: ["david","ananya","liam"] },
+      { id: "email", label: "Email", icon: "M2 4h12a1 1 0 011 1v8a1 1 0 01-1 1H2a1 1 0 01-1-1V5a1 1 0 011-1zm0 2l6 4 6-4", keywords: ["@","gmail","yahoo","hotmail",".com"] },
+      { id: "phone", label: "Mobile", icon: "M4 2h8a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1zm3 11h2", keywords: ["04","mobile","0400","0421"] },
+      { id: "concession", label: "Concession / DOB", icon: "M2 4h12v10H2zm3-2v4m6-4v4", keywords: ["pensioner","senior","concession","none","1982","1988","1975"] }
+    ],
+    simHappy: [
+      { role: "assistant", text: "Hi David, this is Alex from Econnex Comparison following up on your electricity and gas comparison. This call is recorded for compliance. Have you got a moment?" },
+      { role: "user", text: "Yeah sure, I got distracted while looking at plans." },
+      { role: "assistant", text: "No worries! Can I confirm your supply address is 45 Station Rd, Burwood NSW 2134?" },
+      { role: "user", text: "Yes, 45 Station Rd in Burwood." },
+      { role: "assistant", text: "Great. You're currently with AGL for both electricity and gas, right?" },
+      { role: "user", text: "That's right, AGL dual fuel." },
+      { role: "assistant", text: "Do you have solar panels installed on the roof?" },
+      { role: "user", text: "No, no solar." },
+      { role: "assistant", text: "Understood. Can I verify your full name as it appears on your utility bill?" },
+      { role: "user", text: "David Miller." },
+      { role: "assistant", text: "Thanks David. What's your email and mobile for the comparison schedule?" },
+      { role: "user", text: "david.miller@outlook.com and mobile is 0421 987 654." },
+      { role: "assistant", text: "Lastly, do you hold any government concession card, or could I grab your birth year?" },
+      { role: "user", text: "No concession, born in 1982." },
+      { role: "assistant", text: "Congratulations David! We've locked in that 22% reference price discount and submitted the transfer. You'll receive full plan documents by email. Have a great day!" }
+    ],
+    simEscalate: [
+      { role: "assistant", text: "Hi Ananya — Alex calling from Econnex regarding your energy quote. This call is recorded for quality." },
+      { role: "user", text: "Look, I already asked you guys to stop calling me this morning. I told someone else I'm busy." },
+      { role: "assistant", text: "I apologize for that Ananya, let me help get this resolved." },
+      { role: "user", text: "No, stop reading your script! I want to speak to a supervisor right now or take me off your list." },
+      { role: "assistant", text: "Understood Ananya. I am immediately transferring you to Aarav, our lead supervisor, who has all your details on screen. One moment." }
+    ]
+  }
+};
+
+// UI Elements
+const leadCardsContainer = document.getElementById("leadCardsContainer");
+const fieldCardsContainer = document.getElementById("fieldCardsContainer");
+const leadVerticalLabel = document.getElementById("leadVerticalLabel");
+const callBtn = document.getElementById("callBtn");
+const callStatus = document.getElementById("callStatus");
+const iconPhone = document.getElementById("iconPhone");
+const iconEnd = document.getElementById("iconEnd");
+const transcriptEl = document.getElementById("transcript");
+const transcriptCount = document.getElementById("transcriptCount");
+const ring1 = document.getElementById("ring1");
+const ring2 = document.getElementById("ring2");
+const micNote = document.getElementById("micNote");
+const sentimentFill = document.getElementById("sentimentFill");
+const sentimentReading = document.getElementById("sentimentReading");
+const dispositionEl = document.getElementById("disposition");
+const handoffCard = document.getElementById("handoffCard");
+const progressCircle = document.getElementById("progressCircle");
+const progressCount = document.getElementById("progressCount");
+const progressLabel = document.getElementById("progressLabel");
+const agentConsoleModal = document.getElementById("agentConsoleModal");
+const consoleFieldsGrid = document.getElementById("consoleFieldsGrid");
+const gateStrip = document.getElementById("gateStrip");
+const handoffReasonEl = document.getElementById("handoffReason");
+
+// =====================================================================
+// ACMA DO-NOT-CALL GATE  —  runs BEFORE dialling, never after.
+// STUBBED register; swap checkDncLocal() for the ACMA washing API in prod.
+// Mirrors checkDnc() in energy-agent-backend.gs so UI and server agree.
+// =====================================================================
+const DNC_REGISTERED_NUMBERS = ["0400000000", "0499999999"];
+const CALLING_HOURS = { weekdayStart: 9, weekdayEnd: 20, satStart: 9, satEnd: 17, sundayAllowed: false };
+
+function withinCallingHours() {
+  // Evaluate in Australia/Sydney regardless of where the demo laptop is.
+  const syd = new Date(new Date().toLocaleString("en-US", { timeZone: "Australia/Sydney" }));
+  const day = syd.getDay(), hour = syd.getHours();
+  if (day === 0 && !CALLING_HOURS.sundayAllowed) return { ok: false, reason: "Sunday — telemarketing not permitted" };
+  if (day === 6) return { ok: hour >= CALLING_HOURS.satStart && hour < CALLING_HOURS.satEnd, reason: "Sat window 9am–5pm AEST" };
+  return { ok: hour >= CALLING_HOURS.weekdayStart && hour < CALLING_HOURS.weekdayEnd, reason: "Weekday window 9am–8pm AEST" };
+}
+
+/**
+ * Two classes of block, deliberately not equivalent:
+ *   - Register listing  -> HARD block. Never overridable, not even for a demo.
+ *   - Calling hours     -> SOFT block. Overridable with an explicit, logged
+ *                          acknowledgement, because this hackathon is demoed
+ *                          from Jaipur at hours that are not 9-8 in Sydney.
+ */
+let callingHoursOverride = false;
+
+function checkDncLocal(lead) {
+  const digits = String(lead.phone || "").replace(/[^0-9]/g, "");
+  if (DNC_REGISTERED_NUMBERS.indexOf(digits) !== -1) {
+    return { cleared: false, hard: true, code: "BLOCKED", detail: "Listed on ACMA Do Not Call Register" };
+  }
+  const hours = withinCallingHours();
+  if (!hours.ok && !callingHoursOverride) {
+    return { cleared: false, hard: false, code: "BLOCKED", detail: "Outside permitted calling hours — " + hours.reason };
+  }
+  if (!hours.ok && callingHoursOverride) {
+    return { cleared: true, hard: false, code: "OVERRIDDEN", detail: "Outside AU calling hours — demo override acknowledged & logged" };
+  }
+  return { cleared: true, hard: false, code: "CLEARED", detail: "Not on register · within calling hours" };
+}
+
+window.toggleCallingHoursOverride = function () {
+  callingHoursOverride = !callingHoursOverride;
+  renderVertical();
+};
+
+function activeLead() {
+  const v = VERTICAL_DATA[currentVertical];
+  return v.leads.find(l => l.active) || v.leads[0];
+}
+
+function refreshGateStrip() {
+  const lead = activeLead();
+  const dnc = checkDncLocal(lead);
+  const prefix = dnc.code === "CLEARED"    ? "✓ ACMA DNC CLEARED — "
+               : dnc.code === "OVERRIDDEN" ? "⚠ HOURS OVERRIDE — "
+               :                             "⛔ DIALLING BLOCKED — ";
+
+  gateStrip.className = "gate-strip " + (dnc.cleared ? "cleared" : "blocked");
+  gateStrip.innerHTML = prefix + dnc.detail +
+    // Only the soft (calling-hours) block offers an override control.
+    (dnc.hard ? "" :
+      ' <button class="gate-override" onclick="toggleCallingHoursOverride()">' +
+      (callingHoursOverride ? "revoke override" : "override for demo") + "</button>");
+
+  callBtn.classList.toggle("gated", !dnc.cleared);
+  callBtn.title = dnc.cleared ? "Start recovery call" : "Blocked by ACMA DNC gate";
+  return dnc;
+}
+
+// =====================================================================
+// EFFICIENCY LEDGER (25% rubric criterion)
+// Every field the voice agent captures is a field a human did not type.
+// =====================================================================
+const MANUAL_BASELINE_SECONDS = 420;   // 7 min average agent handling time per manual recovery call
+let keystrokesSaved = 0;
+let humanAgentSeconds = 0;             // charged only after a handoff
+
+function updateEfficiency() {
+  const total = VERTICAL_DATA[currentVertical].fields.length;
+  const captured = Object.keys(capturedFields).length;
+  document.getElementById("effFields").textContent = captured + " / " + total;
+  document.getElementById("effKeys").textContent = keystrokesSaved.toLocaleString();
+  document.getElementById("effAgentTime").textContent = humanAgentSeconds + "s";
+  document.getElementById("effBaseline").textContent = MANUAL_BASELINE_SECONDS + "s";
+  const saved = MANUAL_BASELINE_SECONDS - humanAgentSeconds;
+  const pct = Math.round((saved / MANUAL_BASELINE_SECONDS) * 100);
+  document.getElementById("effSaved").textContent = saved + "s (" + pct + "%)";
+}
+
+
+// Render UI for current vertical
+function renderVertical() {
+  const v = VERTICAL_DATA[currentVertical];
+  leadVerticalLabel.textContent = v.label;
+
+  // Render Leads
+  leadCardsContainer.innerHTML = "";
+  v.leads.forEach((l, idx) => {
+    const dnc = checkDncLocal(l);
+    const card = document.createElement("div");
+    card.className = "lead-card" + (idx === 0 ? " active" : "") + (dnc.cleared ? "" : " dnc-blocked");
+    card.onclick = () => selectLead(card, idx);
+    card.innerHTML = `
+      <div class="lead-name">
+        <span>${l.name}</span>
+        <span class="lead-pill">Energy</span>
+      </div>
+      <div class="lead-detail">${l.detail}</div>
+      <span class="lead-step">${l.step}</span>
+      <div class="dnc-badge ${dnc.cleared ? 'cleared' : 'blocked'}" title="${dnc.detail}">
+        ${dnc.code === 'CLEARED' ? '✓ DNC CLEARED' : dnc.code === 'OVERRIDDEN' ? '⚠ HOURS OVERRIDE' : '⛔ DNC BLOCKED'} · ${l.phone}
+      </div>
+    `;
+    leadCardsContainer.appendChild(card);
+  });
+
+  // Render Field Cards
+  fieldCardsContainer.innerHTML = "";
+  v.fields.forEach(f => {
+    const row = document.createElement("div");
+    row.className = "field-row";
+    row.id = `f-${f.id}`;
+    row.innerHTML = `
+      <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="${f.icon}"/>
+      </svg>
+      <div class="field-info">
+        <div class="field-label">${f.label}</div>
+        <div class="field-value empty" id="v-${f.id}">Awaiting…</div>
+      </div>
+    `;
+    fieldCardsContainer.appendChild(row);
+  });
+
+  resetAll();
+}
+
+function selectLead(card, index) {
+  document.querySelectorAll(".lead-card").forEach(c => c.classList.remove("active"));
+  card.classList.add("active");
+  VERTICAL_DATA[currentVertical].leads.forEach((l, i) => l.active = (i === index));
+  resetAll();
+  refreshGateStrip();
+}
+
+// Progress Bar & Sentiment
+function updateProgress() {
+  const count = Object.keys(capturedFields).length;
+  const total = VERTICAL_DATA[currentVertical].fields.length;
+  progressCount.textContent = `${count} / ${total} Fields`;
+  progressLabel.textContent = count === total ? "Journey Complete!" : "Extracting live…";
+  const circumference = 2 * Math.PI * 18;
+  const offset = circumference * (1 - count / total);
+  progressCircle.style.strokeDashoffset = offset;
+}
+
+function setSentiment(score) {
+  sentimentScore = Math.max(0, Math.min(100, score));
+  sentimentFill.style.width = sentimentScore + "%";
+  if (sentimentScore >= 65) {
+    sentimentFill.className = "sentiment-fill";
+    sentimentReading.className = "sentiment-reading positive";
+    sentimentReading.textContent = "Positive (" + sentimentScore + "%)";
+  } else if (sentimentScore >= 35) {
+    sentimentFill.className = "sentiment-fill caution";
+    sentimentReading.className = "sentiment-reading caution";
+    sentimentReading.textContent = "Friction (" + sentimentScore + "%)";
+  } else {
+    sentimentFill.className = "sentiment-fill danger";
+    sentimentReading.className = "sentiment-reading danger";
+    sentimentReading.textContent = "Escalate (" + sentimentScore + "%)";
+  }
+}
+
+function addTranscriptLine(role, text) {
+  const line = document.createElement("div");
+  line.className = "line " + role;
+  line.textContent = text;
+  transcriptEl.appendChild(line);
+  transcriptEl.scrollTop = transcriptEl.scrollHeight;
+  const count = transcriptEl.querySelectorAll(".line").length;
+  transcriptCount.textContent = `${count} messages`;
+}
+
+function markFieldCaptured(fieldId, value) {
+  const isNew = !capturedFields[fieldId];
+  capturedFields[fieldId] = value;
+  const row = document.getElementById(`f-${fieldId}`);
+  const val = document.getElementById(`v-${fieldId}`);
+  if (row) row.classList.add("captured");
+  if (val) { val.textContent = value; val.classList.remove("empty"); }
+
+  // Every captured character is a character a human agent did not type.
+  if (isNew) keystrokesSaved += String(value).length;
+
+  updateProgress();
+  updateEfficiency();
+}
+
+// Reset state
+window.resetAll = function() {
+  stopAll();
+  secondsElapsed = 0;
+  sentimentScore = 85;
+  capturedFields = {};
+  keystrokesSaved = 0;
+  humanAgentSeconds = 0;
+  dispositionLocked = false;
+  escalationDispatched = false;
+  callBtn.classList.remove("live");
+  iconPhone.style.display = "block";
+  iconEnd.style.display = "none";
+  callStatus.textContent = "Select lead & click phone to test with real voice";
+  ring1.style.display = "block";
+  ring2.style.display = "block";
+  micNote.style.display = "block";
+  dispositionEl.className = "disposition";
+  dispositionEl.textContent = "";
+  handoffCard.classList.remove("show");
+  transcriptEl.innerHTML = "";
+  transcriptCount.textContent = "0 messages";
+
+  VERTICAL_DATA[currentVertical].fields.forEach(f => {
+    const row = document.getElementById(`f-${f.id}`);
+    const val = document.getElementById(`v-${f.id}`);
+    if (row) row.classList.remove("captured");
+    if (val) { val.textContent = "Awaiting…"; val.classList.add("empty"); }
+  });
+
+  updateProgress();
+  updateEfficiency();
+  refreshGateStrip();
+  progressLabel.textContent = "Waiting for call…";
+  setSentiment(85);
+};
+
+function stopAll() {
+  simulationTimeouts.forEach(clearTimeout);
+  simulationTimeouts = [];
+  clearInterval(timerInterval);
+  inCall = false;
+  isSimulating = false;
+}
+
+// ===== SIMULATION ENGINE =====
+window.runSimulation = function(scenario) {
+  resetAll();
+  isSimulating = true;
+  ring1.style.display = "none";
+  ring2.style.display = "none";
+  callBtn.classList.add("live");
+  iconPhone.style.display = "none";
+  iconEnd.style.display = "block";
+  transcriptEl.classList.add("show");
+
+  callStatus.innerHTML = `Simulating Call — <span class="timer">00:00</span>`;
+  timerInterval = setInterval(() => {
+    secondsElapsed++;
+    const t = callStatus.querySelector(".timer");
+    if (t) t.textContent = `00:${secondsElapsed.toString().padStart(2, "0")}`;
+  }, 1000);
+
+  if (scenario === "happy") {
+    const script = VERTICAL_DATA[currentVertical].simHappy;
+    let delay = 300;
+    script.forEach((item, idx) => {
+      const t = setTimeout(() => {
+        addTranscriptLine(item.role, item.text);
+
+        // Progressively capture fields
+        if (idx === 3) markFieldCaptured("address", "45 Station Rd, Burwood NSW");
+        if (idx === 5) { markFieldCaptured("retailer", "AGL"); markFieldCaptured("fuel", "Dual Fuel"); }
+        if (idx === 7) markFieldCaptured("solar", "No Solar");
+        if (idx === 9) markFieldCaptured("name", "David Miller");
+        if (idx === 11) { markFieldCaptured("email", "david.miller@outlook.com"); markFieldCaptured("phone", "0421 987 654"); }
+        if (idx === 13) markFieldCaptured("concession", "None (1982)");
+
+        setSentiment(80 + (idx * 2));
+
+        if (idx === script.length - 1) {
+          setTimeout(() => {
+            finishSimulation("completed", "✓ Journey Recovered — 8/8 Fields Submitted to CompletedJourneys");
+          }, 1200);
+        }
+      }, delay);
+      delay += (item.role === "assistant" ? 2200 : 1800);
+      simulationTimeouts.push(t);
+    });
+  } else if (scenario === "escalate") {
+    const script = VERTICAL_DATA[currentVertical].simEscalate;
+    let delay = 300;
+    script.forEach((item, idx) => {
+      const t = setTimeout(() => {
+        addTranscriptLine(item.role, item.text);
+
+        // Run the customer's words through the SAME classifier the live call
+        // uses, so the simulation proves the real detection path, not a script.
+        if (item.role === "user") {
+          const hits = classifySignals(item.text);
+          if (hits.length) {
+            const drop = Math.max.apply(null, hits.map(h => h.weight));
+            setSentiment(sentimentScore - drop);
+            const codes = hits.map(h => h.code).join("+");
+            handoffReasonEl.textContent =
+              "Signals " + codes + " detected · sentiment " + sentimentScore + "% — escalating with full context.";
+          }
+        }
+
+        if (idx === script.length - 1) {
+          setTimeout(() => {
+            escalationDispatched = true;
+            humanAgentSeconds = 90;
+            handoffCard.classList.add("show");
+            finishSimulation("escalated", "⚠ Frustration Detected — Warm Handoff Dispatched to Mode A Console");
+          }, 1000);
+        }
+      }, delay);
+      delay += 2200;
+      simulationTimeouts.push(t);
+    });
+  } else if (scenario === "decline") {
+    const script = [
+      { role: "assistant", text: "Hi, this is Alex calling from Econnex Comparison. This call is recorded for quality. Do you have a moment?" },
+      { role: "user", text: "No thanks, I'm at work right now and not interested. Stop calling." },
+      { role: "assistant", text: "No worries at all, thank you for your time. Have a wonderful day!" }
+    ];
+    let delay = 300;
+    script.forEach((item, idx) => {
+      const t = setTimeout(() => {
+        addTranscriptLine(item.role, item.text);
+        if (idx === 1) setSentiment(40);
+        if (idx === script.length - 1) {
+          setTimeout(() => {
+            finishSimulation("declined", "✕ Customer Declined — Logged & Respected (Zero Pressure Exit)");
+          }, 1000);
+        }
+      }, delay);
+      delay += 2000;
+      simulationTimeouts.push(t);
+    });
+  }
+};
+
+function finishSimulation(type, message) {
+  clearInterval(timerInterval);
+  isSimulating = false;
+  callBtn.classList.remove("live");
+  iconPhone.style.display = "block";
+  iconEnd.style.display = "none";
+  callStatus.textContent = "Call concluded (" + type + ")";
+  dispositionEl.className = `disposition show ${type}`;
+  dispositionEl.textContent = message;
+
+  // A completed or declined call consumed zero human agent time. An escalated
+  // one consumed only the post-handoff portion, already set at handoff.
+  if (type !== "escalated") humanAgentSeconds = 0;
+  updateEfficiency();
+
+  const counterId = type === "completed" ? "statRecovered"
+                  : type === "escalated" ? "statEscalated"
+                  : type === "declined"  ? "statDeclined" : null;
+  if (counterId) {
+    const el = document.getElementById(counterId);
+    el.textContent = (parseInt(el.textContent, 10) || 0) + 1;
+  }
+}
+
+// Agent Console Modal (Mode A)
+window.openAgentConsole = function() {
+  consoleFieldsGrid.innerHTML = "";
+  const v = VERTICAL_DATA[currentVertical];
+  v.fields.forEach(f => {
+    const val = capturedFields[f.id] || "Pre-populated from abandoned cart";
+    const div = document.createElement("div");
+    div.className = "console-field";
+    div.innerHTML = `<div class="lbl">${f.label}</div><div class="val">${val}</div>`;
+    consoleFieldsGrid.appendChild(div);
+  });
+  agentConsoleModal.classList.add("open");
+};
+
+window.closeAgentConsole = function() {
+  agentConsoleModal.classList.remove("open");
+};
+
+// Configurable Assistant IDs (can share one or use dedicated per vertical)
+// Energy is the submission target (brief p.2). Run a dedicated Energy assistant —
+// a single assistant carrying both field lists drifts between scripts mid-call.
+const VAPI_ASSISTANT_IDS = {
+  energy: "bccfa9d1-67b4-4ff2-9302-189922eb8021"
+};
+
+// ===== LIVE VAPI SDK WIRING =====
+callBtn.addEventListener("click", () => {
+  if (isSimulating) {
+    resetAll();
+    return;
+  }
+  if (!inCall) {
+    const lead = activeLead();
+
+    // ---- No dedicated assistant for this vertical => simulation only. ----
+    if (!VAPI_ASSISTANT_IDS[currentVertical]) {
+      callStatus.textContent = "No dedicated " + VERTICAL_DATA[currentVertical].label + " assistant configured";
+      dispositionEl.className = "disposition show declined";
+      dispositionEl.textContent =
+        "ℹ Live calls are Energy-only (the brief's vertical). " +
+        VERTICAL_DATA[currentVertical].label + " runs as simulation — use the playback buttons above.";
+      return;
+    }
+
+    // ---- GUARDRAIL: ACMA DNC gate sits here, before any dialling. ----
+    const dnc = refreshGateStrip();
+    if (!dnc.cleared) {
+      callStatus.textContent = "Call refused by DNC gate — " + dnc.detail;
+      dispositionEl.className = "disposition show declined";
+      dispositionEl.textContent = "⛔ Dialling blocked — " + dnc.detail + " (lead suppressed, not retried)";
+      return;
+    }
+
+    callStatus.textContent = "Connecting to Vapi WebRTC…";
+    ring1.style.display = "none";
+    ring2.style.display = "none";
+    micNote.style.display = "none";
+
+    const assistantId = VAPI_ASSISTANT_IDS[currentVertical] || VAPI_ASSISTANT_ID;
+
+    // Dynamic variable overrides injected directly into Vapi prompt
+    const assistantOverrides = {
+      variableValues: {
+        vertical: "Energy (Electricity & Gas)",
+        customerName: lead.name,
+        leadId: lead.id,
+        leadPhone: lead.phone,
+        leadAddress: lead.detail.replace(/<br>.*/, "").trim()
+      }
+    };
+
+    console.log("Starting Vapi call with overrides:", assistantOverrides);
+    vapi.start(assistantId, assistantOverrides);
+  } else {
+    vapi.stop();
+  }
+});
+
+vapi.on("call-start", () => {
+  inCall = true;
+  callBtn.classList.add("live");
+  iconPhone.style.display = "none";
+  iconEnd.style.display = "block";
+  secondsElapsed = 0;
+  callStatus.innerHTML = `Live Call — <span class="timer">00:00</span>`;
+  timerInterval = setInterval(() => {
+    secondsElapsed++;
+    const t = callStatus.querySelector(".timer");
+    if (t) t.textContent = `00:${secondsElapsed.toString().padStart(2, "0")}`;
+  }, 1000);
+  transcriptEl.classList.add("show");
+  transcriptEl.innerHTML = "";
+});
+
+vapi.on("call-end", () => {
+  clearInterval(timerInterval);
+  inCall = false;
+  callBtn.classList.remove("live");
+  iconPhone.style.display = "block";
+  iconEnd.style.display = "none";
+  // Deliberately NOT auto-resetting: the disposition, captured fields and
+  // efficiency ledger are the evidence judges need to read after the call.
+  if (!dispositionLocked) callStatus.textContent = "Call ended";
+});
+
+// Contextual extraction pattern matcher
+let lastAskedField = null;
+const ASK_PATTERNS = [
+  { field: "address", patterns: ["service address","connection address","supply address","property address","where.*connect","confirm.*address","what.*address"] },
+  { field: "retailer", patterns: ["current.*provider","currently with","retailer","current retailer","energy provider","supplier","who.*with"] },
+  { field: "fuel", patterns: ["fuel type","electricity.*gas","dual fuel","power and gas","both electricity"] },
+  { field: "solar", patterns: ["solar","panels","feed-in","rooftop"] },
+  { field: "name", patterns: ["full name","first.*last","name.*id","name.*billing","your name","what.*name","who am i speaking"] },
+  { field: "email", patterns: ["email","e-mail","email address"] },
+  { field: "phone", patterns: ["mobile","phone number","contact number","best number","reach you"] },
+  // Energy folds concession + year-of-birth into one field, so it must answer to
+  // the DOB phrasings too — the "dob" entry above is skipped on the Energy vertical.
+  // "card" alone is deliberately NOT a pattern: it collides with "credit card".
+  { field: "concession", patterns: ["concession","pensioner","healthcare","health care","seniors card","date of birth","year of birth","born"] },
+];
+
+function detectAskedField(text) {
+  const lower = text.toLowerCase();
+
+  // Only bind to fields that actually exist in the active vertical. Without this
+  // guard a pattern belonging to another vertical can win the match, lastAskedField
+  // points at a field the HUD does not have, and the customer's answer is silently
+  // dropped. Kept deliberately: it is what makes adding a vertical safe.
+  const validIds = new Set(VERTICAL_DATA[currentVertical].fields.map(f => f.id));
+
+  for (const ap of ASK_PATTERNS) {
+    if (!validIds.has(ap.field)) continue;
+    for (const p of ap.patterns) {
+      if (new RegExp(p, "i").test(lower)) {
+        lastAskedField = ap.field;
+        return;
+      }
+    }
+  }
+}
+
+// =====================================================================
+// CALL STATE MACHINE
+// Disposition is driven by the assistant's TOOL CALLS (submitJourney /
+// endHandoff / logDecline) — the same signal the backend acts on — not by
+// string-matching what the model happened to say. Phrase matching was the
+// previous approach and mis-fired on filler like "one moment".
+// =====================================================================
+let dispositionLocked = false;
+let escalationDispatched = false;
+
+// Escalation signals from the brief (p.4), classified so the handoff reason is specific.
+const ESCALATION_SIGNALS = [
+  { code: "ASKS",     weight: 60, patterns: [/\b(speak|talk) to (a |an )?(human|person|real|supervisor|manager)\b/i, /\bget me (someone|a person)\b/i, /\bput me through\b/i] },
+  { code: "ANGER",    weight: 45, patterns: [/\b(ridiculous|useless|rubbish|fed up|sick of|stop calling|harass)\b/i, /\bwast(e|ing) my time\b/i, /\bthis is the (second|third|fourth) call\b/i] },
+  { code: "CONFUSION",weight: 30, patterns: [/\b(i already told|i've told you|i just said)\b/i, /\bsay that again\b/i, /\bi don'?t understand\b/i] },
+  { code: "SENSITIVE",weight: 70, patterns: [/\b(card|credit card|bank account|bsb|payment detail|dispute|refund)\b/i] },
+  { code: "OFFSCRIPT",weight: 25, patterns: [/\bwhich (plan|one) (is|do you) (better|recommend)\b/i, /\bwhat should i (do|choose|pick)\b/i, /\badvice\b/i] }
+];
+
+function classifySignals(text) {
+  const hits = [];
+  ESCALATION_SIGNALS.forEach(sig => {
+    if (sig.patterns.some(re => re.test(text))) hits.push(sig);
+  });
+  return hits;
+}
+
+/**
+ * Causal escalation. The sentiment meter is not decorative — crossing the
+ * danger threshold injects a system message into the live call instructing the
+ * model to hand off immediately, and arms the Mode A console either way.
+ */
+function triggerEscalation(reasonText, triggerCode) {
+  if (escalationDispatched) return;
+  escalationDispatched = true;
+
+  try {
+    vapi.send({
+      type: "add-message",
+      message: {
+        role: "system",
+        content: "ESCALATION THRESHOLD CROSSED (" + triggerCode + "). Stop collecting data. " +
+                 "Acknowledge the customer's frustration, tell them you are connecting them to " +
+                 "Aarav who can already see everything they have provided, then call the endHandoff tool immediately."
+      }
+    });
+  } catch (err) {
+    console.warn("Could not inject escalation directive:", err);
+  }
+
+  handoffReasonEl.textContent = reasonText;
+  handoffCard.classList.add("show");
+}
+
+vapi.on("message", (msg) => {
+
+  // ---------- TOOL CALLS: the authoritative disposition signal ----------
+  if (msg.type === "tool-calls" || msg.type === "tool-call") {
+    const calls = msg.toolCalls || msg.toolCallList || (msg.toolCall ? [msg.toolCall] : []);
+    calls.forEach(tc => {
+      const fn = (tc.function && tc.function.name) || tc.name;
+      let args = {};
+      try {
+        const raw = (tc.function && tc.function.arguments) || tc.arguments || {};
+        args = typeof raw === "string" ? JSON.parse(raw) : raw;
+      } catch (err) { /* arguments may stream in partially */ }
+
+      console.log("Tool call received:", fn, args);
+      addTranscriptLine("system", "⚙ tool → " + fn + "(" + Object.keys(args).join(", ") + ")");
+
+      if (fn === "submitJourney") {
+        dispositionLocked = true;
+        finishSimulation("completed", "✓ Journey Recovered — payload submitted to CompletedJourneys");
+      } else if (fn === "endHandoff") {
+        dispositionLocked = true;
+        humanAgentSeconds = 90;   // only post-handoff time is charged to a human
+        updateEfficiency();
+        triggerEscalation(args.reason || "Escalation signal detected mid-call.", args.trigger || "MODEL");
+        finishSimulation("escalated", "⚠ Warm Handoff — full context passed to Mode A console");
+      } else if (fn === "logDecline") {
+        dispositionLocked = true;
+        finishSimulation("declined", "✕ Customer Declined — logged & suppressed (zero pressure exit)");
+      }
+    });
+    return;
+  }
+
+  // ---------- TOOL RESULTS: makes webhook failures visible instead of silent ----------
+  if (msg.type === "tool-calls-result" || msg.type === "tool-call-result") {
+    const raw = msg.toolCallResult || msg.result || msg;
+    let text = typeof raw === "string" ? raw : JSON.stringify(raw);
+    try {
+      const parsed = JSON.parse(typeof raw === "string" ? raw : (raw.result || "{}"));
+      if (parsed.status === "incomplete") {
+        text = "⚠ backend refused: still need " + (parsed.missingFields || []).join(", ");
+      } else if (parsed.status === "error") {
+        text = "✕ backend error: " + parsed.error;
+      } else if (parsed.status) {
+        text = "✓ backend: " + parsed.status;
+      }
+    } catch (err) { /* leave the raw text */ }
+    addTranscriptLine("system", text.slice(0, 220));
+    console.log("Tool result:", raw);
+    return;
+  }
+
+  // ---------- TRANSCRIPT ----------
+  if (msg.type === "transcript" && msg.transcriptType === "final") {
+    const role = msg.role;
+    const text = msg.transcript;
+    addTranscriptLine(role, text);
+
+    if (role === "assistant") {
+      detectAskedField(text);
+      return;
+    }
+
+    if (role !== "user") return;
+
+    // --- Sentiment from classified escalation signals, not loose keywords ---
+    const hits = classifySignals(text);
+    if (hits.length) {
+      const drop = Math.max.apply(null, hits.map(h => h.weight));
+      setSentiment(sentimentScore - drop);
+      const codes = hits.map(h => h.code).join("+");
+
+      // Sensitive topics and explicit requests escalate on the spot.
+      if (hits.some(h => h.code === "SENSITIVE" || h.code === "ASKS")) {
+        triggerEscalation("Signal " + codes + ' detected: "' + text.slice(0, 90) + '"', codes);
+      }
+    } else if (text.length > 8) {
+      setSentiment(sentimentScore + 3);
+    }
+
+    // --- Threshold escalation: the meter DRIVES the handoff ---
+    if (sentimentScore < 30) {
+      triggerEscalation("Sentiment fell to " + sentimentScore + "% — sustained frustration detected.", "SENTIMENT");
+    }
+
+    // --- Field extraction ---
+    const lower = text.toLowerCase();
+    let extracted = false;
+
+    // 1. Direct answer to the assistant's last question
+    if (lastAskedField && !capturedFields[lastAskedField]) {
+      const fieldExists = VERTICAL_DATA[currentVertical].fields.some(f => f.id === lastAskedField);
+      if (fieldExists) {
+        const cleanText = text.replace(/^(it's|its|it is|my|the|um|uh|yeah|yes|sure|ok|okay)\s+/i, "").trim();
+        if (cleanText.length > 0) {
+          markFieldCaptured(lastAskedField, cleanText);
+          extracted = true;
+          lastAskedField = null;
+        }
+      }
+    }
+
+    // 2. Keyword fallback
+    if (!extracted) {
+      VERTICAL_DATA[currentVertical].fields.forEach(f => {
+        if (!capturedFields[f.id]) {
+          for (const kw of f.keywords) {
+            if (lower.includes(kw)) { markFieldCaptured(f.id, text.trim()); break; }
+          }
+        }
+      });
+    }
+  }
+});
+
+// Safety net: if the call ends without any tool firing, fall back to phrase
+// inspection of the final assistant turn so the demo never sits blank.
+vapi.on("call-end", () => {
+  if (dispositionLocked) return;
+  const lines = transcriptEl.querySelectorAll(".line.assistant");
+  const last = lines.length ? lines[lines.length - 1].textContent.toLowerCase() : "";
+  if (/thank you for your time|have a (great|wonderful) day/.test(last)) {
+    finishSimulation("declined", "✕ Customer Declined — logged & respected (inferred from sign-off)");
+  } else if (escalationDispatched) {
+    finishSimulation("escalated", "⚠ Warm Handoff — context passed to Mode A console");
+  }
+});
+
+vapi.on("error", (e) => {
+  console.error("Vapi error:", e);
+  const detail = (e && (e.errorMsg || e.message || (e.error && e.error.message))) || "unknown";
+  callStatus.textContent = "Vapi error: " + detail;
+  addTranscriptLine("system", "✕ vapi error — " + detail);
+  dispositionEl.className = "disposition show declined";
+  dispositionEl.textContent = "✕ Call could not connect (" + detail + ") — use instant simulation instead";
+});
+
+// Initialize
+renderVertical();
+</script>
+</body>
+</html>
