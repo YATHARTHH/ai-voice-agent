@@ -58,6 +58,13 @@ This project delivers:
 ## 📂 Repository Structure
 
 ```
+├── docs/                                   # Full Architectural & Technical Documentation Suite
+│   ├── index.md                            # Documentation Index & Navigation Map
+│   ├── PROJECT_SUMMARY.md                  # Project Vision, Business Impact & Requirements
+│   ├── DEEP_DIVE_ARCHITECTURE.md           # WebRTC Stream, Vapi Tool Schemas & Backend State Machine
+│   ├── REGULATORY_COMPLIANCE_AND_SECURITY.md# ACMA DNC Gate, PCI-DSS & Telemarketing Standards
+│   └── INTERVIEW_QUESTIONS_AND_ANSWERS.md  # System Defense Q&A & Architecture Trade-offs
+├── img/                                    # System Screenshots & Visual UI Walkthroughs
 ├── energy-recovery-demo.html               # Mission Control Frontend (Live WebRTC Call + Extraction HUD + Mode A Console)
 ├── energy-agent-backend.gs                 # Google Apps Script Webhook (submitJourney, endHandoff, logDecline, checkDnc)
 ├── vapi-agent-setup-guide.md               # Complete Vapi Assistant configuration, tool schemas, and deployment guide
